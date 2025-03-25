@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>김영섭 대표 취임 1년 반, KT를 바꾸다</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000000;
+      height: 100%;
+      width: 100%;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      width: 100vw;
+      height: 56.25vw;
+      max-height: 100vh;
+      background: #ffffff;
+      padding: 3vw 4vw;
+      box-sizing: border-box;
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      font-size: 1.8vw;
+      font-weight: 700;
+      color: #000000;
+      margin: 0;
+    }
+
+    header .date {
+      font-size: 1vw;
+      color: #666666;
+    }
+
+    .content {
+      display: flex;
+      gap: 3vw;
+      flex: 1;
+      margin-top: 1.5vw;
+    }
+
+    .left, .right {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2vw;
+    }
+
+    .left {
+      width: 60%;
+    }
+
+    .right {
+      width: 40%;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 0.8vw;
+      box-shadow: 0 0.3vw 0.6vw rgba(0,0,0,0.1);
+      padding: 1.2vw;
+      font-size: 1vw;
+    }
+
+    .highlight {
+      color: #0066cc;
+      font-weight: bold;
+    }
+
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      height: 10vw;
+      gap: 1.5vw;
+      padding-top: 0.5vw;
+      justify-content: center;
+    }
+
+    .bar {
+      width: 2.5vw;
+      text-align: center;
+      color: #ffffff;
+      font-size: 0.9vw;
+      border-radius: 0.4vw 0.4vw 0 0;
+    }
+
+    .bar-label {
+      margin-top: 0.5vw;
+      text-align: center;
+      font-size: 0.9vw;
+      color: #000000;
+    }
+
+    .factor-box {
+      border-left: 0.3vw solid #0066cc;
+      padding-left: 1vw;
+      background: #f4f8fc;
+      border-radius: 0.6vw;
+      font-size: 1vw;
+      line-height: 1.5;
+    }
+
+    ul {
+      padding-left: 1.2vw;
+      margin: 0;
+      font-size: 1vw;
+      line-height: 1.6;
+    }
+
+    .mini-box {
+      font-size: 0.95vw;
+      background: #f9fbfe;
+      border-left: 0.3vw solid #0066cc;
+      padding: 0.8vw 1vw;
+      border-radius: 0.6vw;
+      position: relative;
+    }
+
+    .modal-button {
+      display: inline-block;
+      margin-top: 0.6vw;
+      font-size: 0.95vw;
+      color: #0066cc;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0,0,0,0.8);
+    }
+
+    .modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80vw;
+      height: 45vw;
+      background-color: #000;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+
+    .modal iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 12px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: -2.5vw;
+      right: 0;
+      font-size: 2vw;
+      color: #ffffff;
+      cursor: pointer;
+    }
+
+    footer {
+      font-size: 0.9vw;
+      color: #999;
+      margin-top: 1vw;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>김영섭 대표 취임 1년 반, KT를 바꾸다</h1>
+      <div class="date">2025년 3월 20일</div>
+    </header>
+    <div class="content">
+      <div class="left">
+        <div class="card">
+          <p><span class="highlight">‘김영섭 매직’, 숫자보다 강한 전략의 힘</span><br />
+            2023년 8월, 위기의 KT에 부임한 김영섭 대표는<br />
+            단기간 내 조직 체질 개선, 주주 신뢰 회복, 글로벌 AI 동맹을 이끌어냈습니다.<br />
+            과감한 구조조정과 밸류업 전략, MS·팔란티어와의 협업은 ‘실행 중심’ 리더십의 상징이 되었습니다.
+          </p>
+          <p style="margin-top:1vw;">
+            ▶ 취임 시 주가 33,050원 → 현재 50,700원<br />
+            ▶ 시총 12.7조, SKT를 추월<br />
+            ▶ 외국인 지분율 49% 도달
+          </p>
+        </div>
+        <div class="card">
+          <p class="highlight">핵심 성공 요인</p>
+          <ul>
+            <li>➊ 4400명 인력 구조조정 → 인건비 절감</li>
+            <li>➋ ROE 6% → 10% 목표, 1조 자사주 소각 발표</li>
+            <li>➌ 외국인 지분율 49% 도달 (법정 상한선)</li>
+            <li>➍ MS·팔란티어와 AI 협력 → 매출 5배 성장 기대</li>
+          </ul>
+        </div>
+        <div class="card factor-box">
+          <strong>외국인 투자 유입:</strong><br />
+          법정 지분 한도(49%)까지 도달하며 SKT(42%), LGU+(34%)를 초과.<br />
+          미국 우회상장 주식에는 프리미엄까지 붙어 거래 중.
+        </div>
+        <div class="card factor-box">
+          <strong>KT의 방향성:</strong><br />
+          KT는 단순한 통신사를 넘어, AI 인프라 플랫폼 기업으로 탈바꿈 중입니다.
+        </div>
+      </div>
+      <div class="right">
+        <div class="card">
+          <p class="highlight" style="text-align:center;">3사 외국인 지분율 (%)</p>
+          <div class="bar-chart">
+            <div>
+              <div class="bar" style="height: 9.8vw; background:#0066cc;">49%</div>
+              <div class="bar-label">KT</div>
+            </div>
+            <div>
+              <div class="bar" style="height: 8.4vw; background:#888;">42%</div>
+              <div class="bar-label">SKT</div>
+            </div>
+            <div>
+              <div class="bar" style="height: 6.8vw; background:#ccc; color:#000;">34%</div>
+              <div class="bar-label">LGU+</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <p class="highlight" style="text-align:center;">주가 상승률 (최근 1.5년)</p>
+          <div class="bar-chart">
+            <div>
+              <div class="bar" style="height: 9vw; background:#0066cc;">54%</div>
+              <div class="bar-label">KT</div>
+            </div>
+            <div>
+              <div class="bar" style="height: 3vw; background:#999;">17.3%</div>
+              <div class="bar-label">SKT</div>
+            </div>
+            <div>
+              <div class="bar" style="height: 1vw; background:#ccc; color:#000;">3%</div>
+              <div class="bar-label">LGU+</div>
+            </div>
+          </div>
+        </div>
+        <div class="card mini-box">
+          <strong>Palantir & AX 협업 사례</strong><br />
+          • <strong>Heineken:</strong> 공급망 최적화, AI 예측<br />
+          • <strong>Wendy’s:</strong> 매장 운영 자동화, 고객 행동 분석<br />
+          • <strong>삼양식품:</strong> 미국 Gen Z 타깃 신사업, Palantir 기반 데이터 프로젝트 추진<br />
+          <span class="modal-button" onclick="openModal()">▶ 팔란티어 전략 보기</span>
+        </div>
+      </div>
+    </div>
+    <footer>출처: kt 인재육성담당 / 조선비즈 · 삼양식품 채용 공고(2025.3)</footer>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal" id="videoModal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeModal()">✕</span>
+      <iframe src="https://www.youtube.com/embed/2w8RfZwxQc0?si=p59hAnynY4uuYtfN" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <script>
+    function openModal() {
+      document.getElementById("videoModal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("videoModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>
