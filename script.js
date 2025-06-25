@@ -681,4 +681,259 @@ style.textContent = `
         }
     }
 `;
-document.head.appendChild(style); 
+document.head.appendChild(style);
+
+// Map System
+class MapSystem {
+    constructor() {
+        this.currentZoom = 13;
+        this.centerLat = 43.0618;
+        this.centerLng = 141.3545;
+        this.mapIframe = document.getElementById('sapporoMap');
+        this.locationItems = document.querySelectorAll('.location-item');
+        this.mapOverlay = document.querySelector('.map-overlay');
+        
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.hideLoadingOverlay();
+        this.updateMapUrl();
+    }
+    
+    setupEventListeners() {
+        // Location item clicks
+        this.locationItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                this.handleLocationClick(item);
+            });
+        });
+        
+        // Map controls
+        const centerBtn = document.getElementById('centerMap');
+        const zoomInBtn = document.getElementById('zoomIn');
+        const zoomOutBtn = document.getElementById('zoomOut');
+        
+        if (centerBtn) {
+            centerBtn.addEventListener('click', () => {
+                this.centerMap();
+            });
+        }
+        
+        if (zoomInBtn) {
+            zoomInBtn.addEventListener('click', () => {
+                this.zoomIn();
+            });
+        }
+        
+        if (zoomOutBtn) {
+            zoomOutBtn.addEventListener('click', () => {
+                this.zoomOut();
+            });
+        }
+        
+        // Map iframe load event
+        if (this.mapIframe) {
+            this.mapIframe.addEventListener('load', () => {
+                this.hideLoadingOverlay();
+            });
+        }
+    }
+    
+    handleLocationClick(item) {
+        // Remove active class from all items
+        this.locationItems.forEach(loc => loc.classList.remove('active'));
+        
+        // Add active class to clicked item
+        item.classList.add('active');
+        
+        // Get coordinates
+        const lat = parseFloat(item.dataset.lat);
+        const lng = parseFloat(item.dataset.lng);
+        const name = item.dataset.name;
+        
+        // Update map
+        this.centerMapOnLocation(lat, lng, name);
+        
+        // Show notification
+        this.showLocationNotification(name);
+    }
+    
+    centerMapOnLocation(lat, lng, name) {
+        this.centerLat = lat;
+        this.centerLng = lng;
+        this.currentZoom = 15;
+        this.updateMapUrl();
+        
+        // Smooth scroll to map
+        const mapContainer = document.querySelector('.map-container');
+        if (mapContainer) {
+            mapContainer.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+    }
+    
+    centerMap() {
+        this.centerLat = 43.0618;
+        this.centerLng = 141.3545;
+        this.currentZoom = 13;
+        this.updateMapUrl();
+        
+        // Remove active class from all items
+        this.locationItems.forEach(loc => loc.classList.remove('active'));
+    }
+    
+    zoomIn() {
+        if (this.currentZoom < 18) {
+            this.currentZoom++;
+            this.updateMapUrl();
+        }
+    }
+    
+    zoomOut() {
+        if (this.currentZoom > 10) {
+            this.currentZoom--;
+            this.updateMapUrl();
+        }
+    }
+    
+    updateMapUrl() {
+        if (!this.mapIframe) return;
+        
+        // Create a better Google Maps URL with proper parameters
+        const baseUrl = 'https://www.google.com/maps/embed/v1/view';
+        const apiKey = 'AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8'; // Google Maps Embed API key
+        const url = `${baseUrl}?key=${apiKey}&center=${this.centerLat},${this.centerLng}&zoom=${this.currentZoom}&maptype=roadmap`;
+        
+        this.mapIframe.src = url;
+        
+        // Show loading overlay
+        this.showLoadingOverlay();
+    }
+    
+    showLoadingOverlay() {
+        if (this.mapOverlay) {
+            this.mapOverlay.classList.remove('hidden');
+        }
+    }
+    
+    hideLoadingOverlay() {
+        if (this.mapOverlay) {
+            setTimeout(() => {
+                this.mapOverlay.classList.add('hidden');
+            }, 1000);
+        }
+    }
+    
+    showLocationNotification(locationName) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e74c3c;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            animation: slideInDown 0.3s ease-out;
+            font-weight: 500;
+        `;
+        notification.textContent = `${locationName} 위치로 지도가 이동했습니다`;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOutUp 0.3s ease-out';
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }, 2000);
+    }
+}
+
+// Enhanced map functionality
+function enhanceMapSection() {
+    // Add map animations
+    const mapSection = document.querySelector('.map-section');
+    if (mapSection) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        mapSection.style.opacity = '0';
+        mapSection.style.transform = 'translateY(30px)';
+        mapSection.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+        observer.observe(mapSection);
+    }
+    
+    // Add location item animations
+    const locationItems = document.querySelectorAll('.location-item');
+    locationItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        item.style.transition = `opacity 0.5s ease ${index * 0.1}s, transform 0.5s ease ${index * 0.1}s`;
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateX(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        observer.observe(item);
+    });
+}
+
+// Initialize map system when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize existing systems
+    new CommentSystem();
+    
+    // Initialize map system
+    new MapSystem();
+    
+    // Enhance map section
+    enhanceMapSection();
+    
+    // Add map notification animations
+    const style = document.createElement('style');
+    style.textContent += `
+        @keyframes slideInDown {
+            from {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutUp {
+            from {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(-50%) translateY(-100%);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}); 
