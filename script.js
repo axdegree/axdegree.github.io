@@ -115,28 +115,31 @@ const imageObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
             const img = entry.target;
-            
-            // Add loading animation
-            img.style.opacity = '0';
-            img.style.transition = 'opacity 0.5s ease';
-            
-            img.onload = () => {
+            // opacity=0을 제거하고, 이미 로드된 경우 바로 opacity=1
+            if (img.complete && img.naturalWidth !== 0) {
                 img.style.opacity = '1';
-            };
-            
-            img.onerror = () => {
-                // Fallback image if loading fails
-                img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBhdmFpbGFibGU8L3RleHQ+PC9zdmc+';
-                img.style.opacity = '1';
-            };
-            
+            } else {
+                img.onload = () => {
+                    img.style.opacity = '1';
+                };
+                img.onerror = () => {
+                    // Fallback image if loading fails
+                    img.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIG5vdCBhdmFpbGFibGU8L3RleHQ+PC9zdmc+';
+                    img.style.opacity = '1';
+                };
+            }
             observer.unobserve(img);
         }
     });
 });
 
 images.forEach(img => {
+    // opacity=0을 제거
     imageObserver.observe(img);
+    // 이미 로드된 경우 바로 opacity=1
+    if (img.complete && img.naturalWidth !== 0) {
+        img.style.opacity = '1';
+    }
 });
 
 // Parallax effect for hero section

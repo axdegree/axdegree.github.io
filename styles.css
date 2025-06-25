@@ -726,4 +726,82 @@ img:not([src]) {
     100% {
         background-position: -200% 0;
     }
+}
+
+/* Attractions Section */
+.attractions {
+    padding: 5rem 0;
+    background: #f8f9fa;
+}
+
+.attractions h2 {
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    color: #2c3e50;
+}
+
+.attractions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.attraction-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.attraction-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 32px rgba(44, 62, 80, 0.15);
+}
+
+.attraction-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.attraction-info {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.attraction-info h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.7rem;
+    color: #2c3e50;
+}
+
+.attraction-info p {
+    color: #555;
+    margin-bottom: 0.7rem;
+    line-height: 1.6;
+}
+
+.attraction-info .source {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    margin-top: auto;
+}
+
+@media (max-width: 768px) {
+    .attractions-grid {
+        grid-template-columns: 1fr;
+    }
+    .attraction-card img {
+        height: 180px;
+    }
 } 
