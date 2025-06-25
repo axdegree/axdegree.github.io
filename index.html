@@ -167,89 +167,99 @@
                 <div class="map-content">
                     <div class="map-info">
                         <h3>삿포로 주요 관광지</h3>
-                        <p>삿포로의 주요 관광지들을 지도에서 확인해보세요. 각 장소를 클릭하면 구글 지도에서 자세한 정보를 볼 수 있습니다.</p>
-                        <div class="location-list">
-                            <div class="location-item" data-lat="43.0618" data-lng="141.3545" data-name="삿포로 타워">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <div class="location-info">
-                                    <h4>삿포로 타워</h4>
-                                    <p>삿포로의 상징적인 타워</p>
-                                    <span class="location-distance">도심 중심부</span>
-                                </div>
-                            </div>
-                            <div class="location-item" data-lat="43.0589" data-lng="141.3545" data-name="오도리 공원">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <div class="location-info">
-                                    <h4>오도리 공원</h4>
-                                    <p>삿포로 중심부의 대공원</p>
-                                    <span class="location-distance">도심 중심부</span>
-                                </div>
-                            </div>
-                            <div class="location-item" data-lat="43.0644" data-lng="141.3468" data-name="삿포로 맥주 박물관">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <div class="location-info">
-                                    <h4>삿포로 맥주 박물관</h4>
-                                    <p>삿포로 맥주의 역사</p>
-                                    <span class="location-distance">도심 북부</span>
-                                </div>
-                            </div>
-                            <div class="location-item" data-lat="43.0589" data-lng="141.3545" data-name="삿포로 시계탑">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <div class="location-info">
-                                    <h4>삿포로 시계탑</h4>
-                                    <p>삿포로의 역사적 랜드마크</p>
-                                    <span class="location-distance">도심 중심부</span>
-                                </div>
-                            </div>
-                            <div class="location-item" data-lat="43.0544" data-lng="141.3478" data-name="삿포로 TV 타워">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <div class="location-info">
-                                    <h4>삿포로 TV 타워</h4>
-                                    <p>오도리 공원의 상징</p>
-                                    <span class="location-distance">오도리 공원 내</span>
-                                </div>
-                            </div>
-                            <div class="location-item" data-lat="43.0667" data-lng="141.3500" data-name="홋카이도 대학">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <div class="location-info">
-                                    <h4>홋카이도 대학</h4>
-                                    <p>일본 최고의 대학 중 하나</p>
-                                    <span class="location-distance">도심 북부</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="map-controls">
-                            <button class="map-control-btn" id="centerMap">
-                                <i class="fas fa-crosshairs"></i>
-                                지도 중앙으로
-                            </button>
-                            <button class="map-control-btn" id="zoomIn">
-                                <i class="fas fa-plus"></i>
-                                확대
-                            </button>
-                            <button class="map-control-btn" id="zoomOut">
-                                <i class="fas fa-minus"></i>
-                                축소
-                            </button>
-                        </div>
+                        <p>삿포로의 주요 관광지들을 확인해보세요. 각 장소를 클릭하면 구글 지도에서 자세한 정보를 볼 수 있습니다.</p>
                     </div>
-                    <div class="map-container">
-                        <div class="map-overlay">
-                            <div class="map-loading">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                지도를 불러오는 중...
+                    <div class="location-grid">
+                        <div class="location-item" data-lat="43.0618" data-lng="141.3545" data-name="삿포로 타워" data-google-url="https://maps.google.com/?q=삿포로+타워">
+                            <div class="location-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="location-info">
+                                <h4>삿포로 타워</h4>
+                                <p>삿포로의 상징적인 타워</p>
+                                <span class="location-distance">도심 중심부</span>
+                            </div>
+                            <div class="location-actions">
+                                <a href="https://maps.google.com/?q=삿포로+타워" class="location-map-link" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
                             </div>
                         </div>
-                        <iframe 
-                            id="sapporoMap"
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2914.5!2d141.3545!3d43.0618!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5f0b297b4b5b5b5b%3A0x5f0b297b4b5b5b5b!2sSapporo%2C%20Hokkaido%2C%20Japan!5e0!3m2!1sen!2sjp!4v1234567890"
-                            width="100%" 
-                            height="500" 
-                            style="border:0;" 
-                            allowfullscreen="" 
-                            loading="lazy" 
-                            referrerpolicy="no-referrer-when-downgrade">
-                        </iframe>
+                        <div class="location-item" data-lat="43.0589" data-lng="141.3545" data-name="오도리 공원" data-google-url="https://maps.google.com/?q=오도리+공원+삿포로">
+                            <div class="location-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="location-info">
+                                <h4>오도리 공원</h4>
+                                <p>삿포로 중심부의 대공원</p>
+                                <span class="location-distance">도심 중심부</span>
+                            </div>
+                            <div class="location-actions">
+                                <a href="https://maps.google.com/?q=오도리+공원+삿포로" class="location-map-link" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="location-item" data-lat="43.0644" data-lng="141.3468" data-name="삿포로 맥주 박물관" data-google-url="https://maps.google.com/?q=삿포로+맥주+박물관">
+                            <div class="location-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="location-info">
+                                <h4>삿포로 맥주 박물관</h4>
+                                <p>삿포로 맥주의 역사</p>
+                                <span class="location-distance">도심 북부</span>
+                            </div>
+                            <div class="location-actions">
+                                <a href="https://maps.google.com/?q=삿포로+맥주+박물관" class="location-map-link" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="location-item" data-lat="43.0589" data-lng="141.3545" data-name="삿포로 시계탑" data-google-url="https://maps.google.com/?q=삿포로+시계탑">
+                            <div class="location-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="location-info">
+                                <h4>삿포로 시계탑</h4>
+                                <p>삿포로의 역사적 랜드마크</p>
+                                <span class="location-distance">도심 중심부</span>
+                            </div>
+                            <div class="location-actions">
+                                <a href="https://maps.google.com/?q=삿포로+시계탑" class="location-map-link" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="location-item" data-lat="43.0544" data-lng="141.3478" data-name="삿포로 TV 타워" data-google-url="https://maps.google.com/?q=삿포로+TV+타워">
+                            <div class="location-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="location-info">
+                                <h4>삿포로 TV 타워</h4>
+                                <p>오도리 공원의 상징</p>
+                                <span class="location-distance">오도리 공원 내</span>
+                            </div>
+                            <div class="location-actions">
+                                <a href="https://maps.google.com/?q=삿포로+TV+타워" class="location-map-link" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="location-item" data-lat="43.0667" data-lng="141.3500" data-name="홋카이도 대학" data-google-url="https://maps.google.com/?q=홋카이도+대학">
+                            <div class="location-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div class="location-info">
+                                <h4>홋카이도 대학</h4>
+                                <p>일본 최고의 대학 중 하나</p>
+                                <span class="location-distance">도심 북부</span>
+                            </div>
+                            <div class="location-actions">
+                                <a href="https://maps.google.com/?q=홋카이도+대학" class="location-map-link" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

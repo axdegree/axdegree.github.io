@@ -428,18 +428,19 @@ document.querySelectorAll('.read-more').forEach(btn => {
     });
 });
 
-// Comment System
+// Comment System with Real Database
 class CommentSystem {
     constructor() {
-        this.comments = this.loadComments();
+        this.comments = [];
         this.commentForm = document.getElementById('commentForm');
         this.commentsList = document.getElementById('commentsList');
+        this.apiBaseUrl = 'http://localhost:3000/api';
         
         this.init();
     }
     
-    init() {
-        this.renderComments();
+    async init() {
+        await this.loadComments();
         this.setupEventListeners();
     }
     
@@ -452,7 +453,22 @@ class CommentSystem {
         }
     }
     
-    addComment() {
+    async loadComments() {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/comments`);
+            if (!response.ok) {
+                throw new Error('Failed to load comments');
+            }
+            
+            this.comments = await response.json();
+            this.renderComments();
+        } catch (error) {
+            console.error('Error loading comments:', error);
+            this.showNotification('댓글을 불러오는데 실패했습니다.', 'error');
+        }
+    }
+    
+    async addComment() {
         const nameInput = document.getElementById('commentName');
         const textInput = document.getElementById('commentText');
         
@@ -460,52 +476,90 @@ class CommentSystem {
         const text = textInput.value.trim();
         
         if (!name || !text) {
-            alert('이름과 댓글 내용을 모두 입력해주세요.');
+            this.showNotification('이름과 댓글 내용을 모두 입력해주세요.', 'error');
             return;
         }
         
-        const comment = {
-            id: Date.now(),
-            name: name,
-            text: text,
-            date: new Date().toLocaleString('ko-KR'),
-            replies: []
-        };
-        
-        this.comments.unshift(comment);
-        this.saveComments();
-        this.renderComments();
-        
-        // 폼 초기화
-        this.commentForm.reset();
-        
-        // 성공 메시지
-        this.showNotification('댓글이 성공적으로 작성되었습니다!');
-    }
-    
-    addReply(parentId, name, text) {
-        const parentComment = this.comments.find(c => c.id === parentId);
-        if (parentComment) {
-            const reply = {
-                id: Date.now(),
-                name: name,
-                text: text,
-                date: new Date().toLocaleString('ko-KR')
-            };
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/comments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, text })
+            });
             
-            parentComment.replies.push(reply);
-            this.saveComments();
+            if (!response.ok) {
+                throw new Error('Failed to add comment');
+            }
+            
+            const newComment = await response.json();
+            this.comments.unshift(newComment);
             this.renderComments();
-            this.showNotification('답글이 성공적으로 작성되었습니다!');
+            
+            // 폼 초기화
+            this.commentForm.reset();
+            
+            // 성공 메시지
+            this.showNotification('댓글이 성공적으로 작성되었습니다!', 'success');
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            this.showNotification('댓글 작성에 실패했습니다.', 'error');
         }
     }
     
-    deleteComment(commentId) {
-        if (confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+    async addReply(parentId, name, text) {
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/comments/${parentId}/replies`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, text })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to add reply');
+            }
+            
+            const newReply = await response.json();
+            
+            // Find parent comment and add reply
+            const parentComment = this.comments.find(c => c.id === parentId);
+            if (parentComment) {
+                if (!parentComment.replies) {
+                    parentComment.replies = [];
+                }
+                parentComment.replies.push(newReply);
+                this.renderComments();
+                this.showNotification('답글이 성공적으로 작성되었습니다!', 'success');
+            }
+        } catch (error) {
+            console.error('Error adding reply:', error);
+            this.showNotification('답글 작성에 실패했습니다.', 'error');
+        }
+    }
+    
+    async deleteComment(commentId) {
+        if (!confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${this.apiBaseUrl}/comments/${commentId}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to delete comment');
+            }
+            
             this.comments = this.comments.filter(c => c.id !== commentId);
-            this.saveComments();
             this.renderComments();
-            this.showNotification('댓글이 삭제되었습니다.');
+            this.showNotification('댓글이 삭제되었습니다.', 'success');
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+            this.showNotification('댓글 삭제에 실패했습니다.', 'error');
         }
     }
     
@@ -524,7 +578,7 @@ class CommentSystem {
     }
     
     renderComment(comment) {
-        const repliesHtml = comment.replies.length > 0 
+        const repliesHtml = comment.replies && comment.replies.length > 0 
             ? `<div class="comment-replies">${comment.replies.map(reply => this.renderReply(reply)).join('')}</div>`
             : '';
         
@@ -595,7 +649,7 @@ class CommentSystem {
                 const text = textInput.value.trim();
                 
                 if (!name || !text) {
-                    alert('이름과 답글 내용을 모두 입력해주세요.');
+                    this.showNotification('이름과 답글 내용을 모두 입력해주세요.', 'error');
                     return;
                 }
                 
@@ -614,29 +668,23 @@ class CommentSystem {
         return div.innerHTML;
     }
     
-    saveComments() {
-        localStorage.setItem('sapporo-comments', JSON.stringify(this.comments));
-    }
-    
-    loadComments() {
-        const saved = localStorage.getItem('sapporo-comments');
-        return saved ? JSON.parse(saved) : [];
-    }
-    
-    showNotification(message) {
-        // 간단한 알림 표시
+    showNotification(message, type = 'success') {
         const notification = document.createElement('div');
+        const backgroundColor = type === 'success' ? '#27ae60' : '#e74c3c';
+        
         notification.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #27ae60;
+            background: ${backgroundColor};
             color: white;
             padding: 1rem 2rem;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             z-index: 10000;
             animation: slideIn 0.3s ease-out;
+            font-weight: 500;
+            max-width: 300px;
         `;
         notification.textContent = message;
         
@@ -645,7 +693,9 @@ class CommentSystem {
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease-out';
             setTimeout(() => {
-                document.body.removeChild(notification);
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
             }, 300);
         }, 3000);
     }
@@ -686,145 +736,44 @@ document.head.appendChild(style);
 // Map System
 class MapSystem {
     constructor() {
-        this.currentZoom = 13;
-        this.centerLat = 43.0618;
-        this.centerLng = 141.3545;
-        this.mapIframe = document.getElementById('sapporoMap');
         this.locationItems = document.querySelectorAll('.location-item');
-        this.mapOverlay = document.querySelector('.map-overlay');
-        
         this.init();
     }
     
     init() {
         this.setupEventListeners();
-        this.hideLoadingOverlay();
-        this.updateMapUrl();
     }
     
     setupEventListeners() {
-        // Location item clicks
-        this.locationItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                this.handleLocationClick(item);
+        // Location select buttons
+        document.querySelectorAll('.location-select-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.handleLocationSelect(btn);
             });
         });
-        
-        // Map controls
-        const centerBtn = document.getElementById('centerMap');
-        const zoomInBtn = document.getElementById('zoomIn');
-        const zoomOutBtn = document.getElementById('zoomOut');
-        
-        if (centerBtn) {
-            centerBtn.addEventListener('click', () => {
-                this.centerMap();
-            });
-        }
-        
-        if (zoomInBtn) {
-            zoomInBtn.addEventListener('click', () => {
-                this.zoomIn();
-            });
-        }
-        
-        if (zoomOutBtn) {
-            zoomOutBtn.addEventListener('click', () => {
-                this.zoomOut();
-            });
-        }
-        
-        // Map iframe load event
-        if (this.mapIframe) {
-            this.mapIframe.addEventListener('load', () => {
-                this.hideLoadingOverlay();
-            });
-        }
     }
     
-    handleLocationClick(item) {
-        // Remove active class from all items
-        this.locationItems.forEach(loc => loc.classList.remove('active'));
+    handleLocationSelect(btn) {
+        const locationItem = btn.closest('.location-item');
+        const locationName = locationItem.dataset.name;
         
-        // Add active class to clicked item
-        item.classList.add('active');
+        // Toggle selected state
+        const allSelectBtns = document.querySelectorAll('.location-select-btn');
+        allSelectBtns.forEach(b => {
+            b.classList.remove('selected');
+            b.textContent = '선택';
+        });
         
-        // Get coordinates
-        const lat = parseFloat(item.dataset.lat);
-        const lng = parseFloat(item.dataset.lng);
-        const name = item.dataset.name;
-        
-        // Update map
-        this.centerMapOnLocation(lat, lng, name);
-        
-        // Show notification
-        this.showLocationNotification(name);
-    }
-    
-    centerMapOnLocation(lat, lng, name) {
-        this.centerLat = lat;
-        this.centerLng = lng;
-        this.currentZoom = 15;
-        this.updateMapUrl();
-        
-        // Smooth scroll to map
-        const mapContainer = document.querySelector('.map-container');
-        if (mapContainer) {
-            mapContainer.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
-        }
-    }
-    
-    centerMap() {
-        this.centerLat = 43.0618;
-        this.centerLng = 141.3545;
-        this.currentZoom = 13;
-        this.updateMapUrl();
-        
-        // Remove active class from all items
-        this.locationItems.forEach(loc => loc.classList.remove('active'));
-    }
-    
-    zoomIn() {
-        if (this.currentZoom < 18) {
-            this.currentZoom++;
-            this.updateMapUrl();
-        }
-    }
-    
-    zoomOut() {
-        if (this.currentZoom > 10) {
-            this.currentZoom--;
-            this.updateMapUrl();
-        }
-    }
-    
-    updateMapUrl() {
-        if (!this.mapIframe) return;
-        
-        // Create a better Google Maps URL with proper parameters
-        const baseUrl = 'https://www.google.com/maps/embed/v1/view';
-        const apiKey = 'AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8'; // Google Maps Embed API key
-        const url = `${baseUrl}?key=${apiKey}&center=${this.centerLat},${this.centerLng}&zoom=${this.currentZoom}&maptype=roadmap`;
-        
-        this.mapIframe.src = url;
-        
-        // Show loading overlay
-        this.showLoadingOverlay();
-    }
-    
-    showLoadingOverlay() {
-        if (this.mapOverlay) {
-            this.mapOverlay.classList.remove('hidden');
-        }
-    }
-    
-    hideLoadingOverlay() {
-        if (this.mapOverlay) {
-            setTimeout(() => {
-                this.mapOverlay.classList.add('hidden');
-            }, 1000);
+        if (!btn.classList.contains('selected')) {
+            btn.classList.add('selected');
+            btn.textContent = '선택됨';
+            
+            // Show notification
+            this.showLocationNotification(`${locationName}이(가) 선택되었습니다!`);
+        } else {
+            btn.classList.remove('selected');
+            btn.textContent = '선택';
         }
     }
     
@@ -844,7 +793,7 @@ class MapSystem {
             animation: slideInDown 0.3s ease-out;
             font-weight: 500;
         `;
-        notification.textContent = `${locationName} 위치로 지도가 이동했습니다`;
+        notification.textContent = locationName;
         
         document.body.appendChild(notification);
         
@@ -936,4 +885,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     `;
     document.head.appendChild(style);
+});
+
+// 지도 섹션 관련 JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    const locationItems = document.querySelectorAll('.location-item');
+    
+    locationItems.forEach(item => {
+        // 호버 효과
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-5px) scale(1.02)';
+            this.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
+        });
+        
+        item.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+            this.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.1)';
+        });
+        
+        // 클릭 시 Google Maps 링크 열기
+        item.addEventListener('click', function(e) {
+            // 링크 버튼이 아닌 다른 부분을 클릭했을 때만
+            if (!e.target.closest('.location-map-link')) {
+                const googleUrl = this.getAttribute('data-google-url');
+                if (googleUrl) {
+                    window.open(googleUrl, '_blank');
+                }
+            }
+        });
+    });
 }); 
