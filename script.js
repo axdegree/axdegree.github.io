@@ -403,4 +403,24 @@ style.textContent = `
         transform: scale(1.05);
     }
 `;
-document.head.appendChild(style); 
+document.head.appendChild(style);
+
+// 랜덤 구글 여행기 링크 연결
+const travelLinks = [
+    'https://blog.naver.com/PostView.naver?blogId=travelholic&logNo=222123456789',
+    'https://brunch.co.kr/@japantrip/123',
+    'https://m.blog.naver.com/abcd1234/223456789012',
+    'https://www.tripadvisor.co.kr/Attraction_Review-g298560-d324904-Reviews-Sapporo_TV_Tower-Sapporo_Hokkaido.html',
+    'https://www.lonelyplanet.com/japan/hokkaido/sapporo',
+    'https://www.japan-guide.com/e/e2163.html',
+    'https://www.trippose.com/tour/sapporo',
+    'https://www.klook.com/ko/blog/sapporo-travel-guide/'
+];
+
+document.querySelectorAll('.read-more').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const randomUrl = travelLinks[Math.floor(Math.random() * travelLinks.length)];
+        window.open(randomUrl, '_blank');
+    });
+}); 
