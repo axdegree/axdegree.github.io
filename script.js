@@ -435,6 +435,7 @@ class CommentSystem {
         this.commentForm = document.getElementById('commentForm');
         this.commentsList = document.getElementById('commentsList');
         this.apiBaseUrl = 'http://localhost:3000/api';
+        this.isLoading = false;
         
         this.init();
     }
@@ -442,6 +443,7 @@ class CommentSystem {
     async init() {
         await this.loadComments();
         this.setupEventListeners();
+        this.setupAutoRefresh();
     }
     
     setupEventListeners() {
@@ -453,18 +455,67 @@ class CommentSystem {
         }
     }
     
+    // 자동 새로고침 설정 (30초마다)
+    setupAutoRefresh() {
+        setInterval(() => {
+            if (!this.isLoading) {
+                this.loadComments();
+            }
+        }, 30000);
+    }
+    
     async loadComments() {
+        if (this.isLoading) return;
+        
+        this.isLoading = true;
         try {
-            const response = await fetch(`${this.apiBaseUrl}/comments`);
+            const response = await fetch(`${this.apiBaseUrl}/comments`, {
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            });
+            
             if (!response.ok) {
-                throw new Error('Failed to load comments');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
-            this.comments = await response.json();
+            const comments = await response.json();
+            this.comments = comments;
             this.renderComments();
+            
+            console.log('댓글 로드 완료:', comments.length + '개');
         } catch (error) {
             console.error('Error loading comments:', error);
-            this.showNotification('댓글을 불러오는데 실패했습니다.', 'error');
+            this.showNotification('댓글을 불러오는데 실패했습니다. 서버 연결을 확인해주세요.', 'error');
+            
+            // 오프라인 상태일 때 로컬 스토리지에서 불러오기
+            this.loadFromLocalStorage();
+        } finally {
+            this.isLoading = false;
+        }
+    }
+    
+    // 로컬 스토리지에서 댓글 불러오기 (오프라인 대비)
+    loadFromLocalStorage() {
+        const savedComments = localStorage.getItem('sapporoComments');
+        if (savedComments) {
+            try {
+                this.comments = JSON.parse(savedComments);
+                this.renderComments();
+                this.showNotification('오프라인 모드: 저장된 댓글을 불러왔습니다.', 'warning');
+            } catch (error) {
+                console.error('Error parsing saved comments:', error);
+            }
+        }
+    }
+    
+    // 로컬 스토리지에 댓글 저장
+    saveToLocalStorage() {
+        try {
+            localStorage.setItem('sapporoComments', JSON.stringify(this.comments));
+        } catch (error) {
+            console.error('Error saving to localStorage:', error);
         }
     }
     
@@ -480,6 +531,12 @@ class CommentSystem {
             return;
         }
         
+        // 입력 중복 방지
+        const submitBtn = this.commentForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = '작성 중...';
+        submitBtn.disabled = true;
+        
         try {
             const response = await fetch(`${this.apiBaseUrl}/comments`, {
                 method: 'POST',
@@ -490,21 +547,28 @@ class CommentSystem {
             });
             
             if (!response.ok) {
-                throw new Error('Failed to add comment');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const newComment = await response.json();
             this.comments.unshift(newComment);
             this.renderComments();
+            this.saveToLocalStorage();
             
             // 폼 초기화
             this.commentForm.reset();
             
             // 성공 메시지
             this.showNotification('댓글이 성공적으로 작성되었습니다!', 'success');
+            
+            // 댓글 목록으로 스크롤
+            this.scrollToComments();
         } catch (error) {
             console.error('Error adding comment:', error);
-            this.showNotification('댓글 작성에 실패했습니다.', 'error');
+            this.showNotification('댓글 작성에 실패했습니다. 네트워크 연결을 확인해주세요.', 'error');
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
         }
     }
     
@@ -519,7 +583,7 @@ class CommentSystem {
             });
             
             if (!response.ok) {
-                throw new Error('Failed to add reply');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const newReply = await response.json();
@@ -532,11 +596,12 @@ class CommentSystem {
                 }
                 parentComment.replies.push(newReply);
                 this.renderComments();
+                this.saveToLocalStorage();
                 this.showNotification('답글이 성공적으로 작성되었습니다!', 'success');
             }
         } catch (error) {
             console.error('Error adding reply:', error);
-            this.showNotification('답글 작성에 실패했습니다.', 'error');
+            this.showNotification('답글 작성에 실패했습니다. 네트워크 연결을 확인해주세요.', 'error');
         }
     }
     
@@ -551,15 +616,16 @@ class CommentSystem {
             });
             
             if (!response.ok) {
-                throw new Error('Failed to delete comment');
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             this.comments = this.comments.filter(c => c.id !== commentId);
             this.renderComments();
+            this.saveToLocalStorage();
             this.showNotification('댓글이 삭제되었습니다.', 'success');
         } catch (error) {
             console.error('Error deleting comment:', error);
-            this.showNotification('댓글 삭제에 실패했습니다.', 'error');
+            this.showNotification('댓글 삭제에 실패했습니다. 네트워크 연결을 확인해주세요.', 'error');
         }
     }
     
@@ -567,7 +633,13 @@ class CommentSystem {
         if (!this.commentsList) return;
         
         if (this.comments.length === 0) {
-            this.commentsList.innerHTML = '<div class="no-comments">아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!</div>';
+            this.commentsList.innerHTML = `
+                <div class="no-comments">
+                    <i class="fas fa-comments" style="font-size: 2rem; color: #ccc; margin-bottom: 1rem;"></i>
+                    <p>아직 댓글이 없습니다.</p>
+                    <p>첫 번째 댓글을 작성해보세요!</p>
+                </div>
+            `;
             return;
         }
         
@@ -585,13 +657,23 @@ class CommentSystem {
         return `
             <div class="comment-item" data-id="${comment.id}">
                 <div class="comment-header">
-                    <span class="comment-author">${this.escapeHtml(comment.name)}</span>
-                    <span class="comment-date">${comment.date}</span>
+                    <span class="comment-author">
+                        <i class="fas fa-user-circle"></i>
+                        ${this.escapeHtml(comment.name)}
+                    </span>
+                    <span class="comment-date">
+                        <i class="fas fa-clock"></i>
+                        ${comment.date}
+                    </span>
                 </div>
                 <div class="comment-content">${this.escapeHtml(comment.text)}</div>
                 <div class="comment-actions">
-                    <button class="comment-action-btn reply-btn" data-id="${comment.id}">답글</button>
-                    <button class="comment-action-btn delete-btn" data-id="${comment.id}">삭제</button>
+                    <button class="comment-action-btn reply-btn" data-id="${comment.id}">
+                        <i class="fas fa-reply"></i> 답글
+                    </button>
+                    <button class="comment-action-btn delete-btn" data-id="${comment.id}">
+                        <i class="fas fa-trash"></i> 삭제
+                    </button>
                 </div>
                 <div class="comment-reply-form" id="reply-form-${comment.id}">
                     <div class="reply-form-group">
@@ -600,7 +682,9 @@ class CommentSystem {
                     <div class="reply-form-group">
                         <textarea placeholder="답글을 입력하세요..." rows="3" class="reply-text-input"></textarea>
                     </div>
-                    <button class="reply-submit-btn" data-id="${comment.id}">답글 작성</button>
+                    <button class="reply-submit-btn" data-id="${comment.id}">
+                        <i class="fas fa-paper-plane"></i> 답글 작성
+                    </button>
                 </div>
                 ${repliesHtml}
             </div>
@@ -611,8 +695,14 @@ class CommentSystem {
         return `
             <div class="comment-item reply-item" style="margin-left: 2rem; margin-top: 1rem; border-left-color: #3498db;">
                 <div class="comment-header">
-                    <span class="comment-author">${this.escapeHtml(reply.name)}</span>
-                    <span class="comment-date">${reply.date}</span>
+                    <span class="comment-author">
+                        <i class="fas fa-user-circle"></i>
+                        ${this.escapeHtml(reply.name)}
+                    </span>
+                    <span class="comment-date">
+                        <i class="fas fa-clock"></i>
+                        ${reply.date}
+                    </span>
                 </div>
                 <div class="comment-content">${this.escapeHtml(reply.text)}</div>
             </div>
@@ -623,16 +713,23 @@ class CommentSystem {
         // 답글 버튼
         document.querySelectorAll('.reply-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const commentId = parseInt(e.target.dataset.id);
+                const commentId = parseInt(e.target.closest('.reply-btn').dataset.id);
                 const replyForm = document.getElementById(`reply-form-${commentId}`);
                 replyForm.classList.toggle('active');
+                
+                // 다른 열린 답글 폼들 닫기
+                document.querySelectorAll('.comment-reply-form.active').forEach(form => {
+                    if (form.id !== `reply-form-${commentId}`) {
+                        form.classList.remove('active');
+                    }
+                });
             });
         });
         
         // 삭제 버튼
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const commentId = parseInt(e.target.dataset.id);
+                const commentId = parseInt(e.target.closest('.delete-btn').dataset.id);
                 this.deleteComment(commentId);
             });
         });
@@ -640,7 +737,7 @@ class CommentSystem {
         // 답글 작성 버튼
         document.querySelectorAll('.reply-submit-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const commentId = parseInt(e.target.dataset.id);
+                const commentId = parseInt(e.target.closest('.reply-submit-btn').dataset.id);
                 const replyForm = document.getElementById(`reply-form-${commentId}`);
                 const nameInput = replyForm.querySelector('.reply-name-input');
                 const textInput = replyForm.querySelector('.reply-text-input');
@@ -662,6 +759,15 @@ class CommentSystem {
         });
     }
     
+    scrollToComments() {
+        if (this.commentsList) {
+            this.commentsList.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+    }
+    
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -670,7 +776,25 @@ class CommentSystem {
     
     showNotification(message, type = 'success') {
         const notification = document.createElement('div');
-        const backgroundColor = type === 'success' ? '#27ae60' : '#e74c3c';
+        let backgroundColor, icon;
+        
+        switch(type) {
+            case 'success':
+                backgroundColor = '#27ae60';
+                icon = 'fas fa-check-circle';
+                break;
+            case 'error':
+                backgroundColor = '#e74c3c';
+                icon = 'fas fa-exclamation-circle';
+                break;
+            case 'warning':
+                backgroundColor = '#f39c12';
+                icon = 'fas fa-exclamation-triangle';
+                break;
+            default:
+                backgroundColor = '#3498db';
+                icon = 'fas fa-info-circle';
+        }
         
         notification.style.cssText = `
             position: fixed;
@@ -684,9 +808,16 @@ class CommentSystem {
             z-index: 10000;
             animation: slideIn 0.3s ease-out;
             font-weight: 500;
-            max-width: 300px;
+            max-width: 350px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         `;
-        notification.textContent = message;
+        
+        notification.innerHTML = `
+            <i class="${icon}" style="font-size: 1.2rem;"></i>
+            <span>${message}</span>
+        `;
         
         document.body.appendChild(notification);
         
@@ -697,7 +828,7 @@ class CommentSystem {
                     document.body.removeChild(notification);
                 }
             }, 300);
-        }, 3000);
+        }, 4000);
     }
 }
 
