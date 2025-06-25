@@ -426,4 +426,259 @@ document.querySelectorAll('.read-more').forEach(btn => {
         const randomUrl = travelLinks[Math.floor(Math.random() * travelLinks.length)];
         window.open(randomUrl, '_blank');
     });
-}); 
+});
+
+// Comment System
+class CommentSystem {
+    constructor() {
+        this.comments = this.loadComments();
+        this.commentForm = document.getElementById('commentForm');
+        this.commentsList = document.getElementById('commentsList');
+        
+        this.init();
+    }
+    
+    init() {
+        this.renderComments();
+        this.setupEventListeners();
+    }
+    
+    setupEventListeners() {
+        if (this.commentForm) {
+            this.commentForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.addComment();
+            });
+        }
+    }
+    
+    addComment() {
+        const nameInput = document.getElementById('commentName');
+        const textInput = document.getElementById('commentText');
+        
+        const name = nameInput.value.trim();
+        const text = textInput.value.trim();
+        
+        if (!name || !text) {
+            alert('이름과 댓글 내용을 모두 입력해주세요.');
+            return;
+        }
+        
+        const comment = {
+            id: Date.now(),
+            name: name,
+            text: text,
+            date: new Date().toLocaleString('ko-KR'),
+            replies: []
+        };
+        
+        this.comments.unshift(comment);
+        this.saveComments();
+        this.renderComments();
+        
+        // 폼 초기화
+        this.commentForm.reset();
+        
+        // 성공 메시지
+        this.showNotification('댓글이 성공적으로 작성되었습니다!');
+    }
+    
+    addReply(parentId, name, text) {
+        const parentComment = this.comments.find(c => c.id === parentId);
+        if (parentComment) {
+            const reply = {
+                id: Date.now(),
+                name: name,
+                text: text,
+                date: new Date().toLocaleString('ko-KR')
+            };
+            
+            parentComment.replies.push(reply);
+            this.saveComments();
+            this.renderComments();
+            this.showNotification('답글이 성공적으로 작성되었습니다!');
+        }
+    }
+    
+    deleteComment(commentId) {
+        if (confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+            this.comments = this.comments.filter(c => c.id !== commentId);
+            this.saveComments();
+            this.renderComments();
+            this.showNotification('댓글이 삭제되었습니다.');
+        }
+    }
+    
+    renderComments() {
+        if (!this.commentsList) return;
+        
+        if (this.comments.length === 0) {
+            this.commentsList.innerHTML = '<div class="no-comments">아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!</div>';
+            return;
+        }
+        
+        this.commentsList.innerHTML = this.comments.map(comment => this.renderComment(comment)).join('');
+        
+        // 이벤트 리스너 다시 설정
+        this.setupCommentEventListeners();
+    }
+    
+    renderComment(comment) {
+        const repliesHtml = comment.replies.length > 0 
+            ? `<div class="comment-replies">${comment.replies.map(reply => this.renderReply(reply)).join('')}</div>`
+            : '';
+        
+        return `
+            <div class="comment-item" data-id="${comment.id}">
+                <div class="comment-header">
+                    <span class="comment-author">${this.escapeHtml(comment.name)}</span>
+                    <span class="comment-date">${comment.date}</span>
+                </div>
+                <div class="comment-content">${this.escapeHtml(comment.text)}</div>
+                <div class="comment-actions">
+                    <button class="comment-action-btn reply-btn" data-id="${comment.id}">답글</button>
+                    <button class="comment-action-btn delete-btn" data-id="${comment.id}">삭제</button>
+                </div>
+                <div class="comment-reply-form" id="reply-form-${comment.id}">
+                    <div class="reply-form-group">
+                        <input type="text" placeholder="이름" class="reply-name-input">
+                    </div>
+                    <div class="reply-form-group">
+                        <textarea placeholder="답글을 입력하세요..." rows="3" class="reply-text-input"></textarea>
+                    </div>
+                    <button class="reply-submit-btn" data-id="${comment.id}">답글 작성</button>
+                </div>
+                ${repliesHtml}
+            </div>
+        `;
+    }
+    
+    renderReply(reply) {
+        return `
+            <div class="comment-item reply-item" style="margin-left: 2rem; margin-top: 1rem; border-left-color: #3498db;">
+                <div class="comment-header">
+                    <span class="comment-author">${this.escapeHtml(reply.name)}</span>
+                    <span class="comment-date">${reply.date}</span>
+                </div>
+                <div class="comment-content">${this.escapeHtml(reply.text)}</div>
+            </div>
+        `;
+    }
+    
+    setupCommentEventListeners() {
+        // 답글 버튼
+        document.querySelectorAll('.reply-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const commentId = parseInt(e.target.dataset.id);
+                const replyForm = document.getElementById(`reply-form-${commentId}`);
+                replyForm.classList.toggle('active');
+            });
+        });
+        
+        // 삭제 버튼
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const commentId = parseInt(e.target.dataset.id);
+                this.deleteComment(commentId);
+            });
+        });
+        
+        // 답글 작성 버튼
+        document.querySelectorAll('.reply-submit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const commentId = parseInt(e.target.dataset.id);
+                const replyForm = document.getElementById(`reply-form-${commentId}`);
+                const nameInput = replyForm.querySelector('.reply-name-input');
+                const textInput = replyForm.querySelector('.reply-text-input');
+                
+                const name = nameInput.value.trim();
+                const text = textInput.value.trim();
+                
+                if (!name || !text) {
+                    alert('이름과 답글 내용을 모두 입력해주세요.');
+                    return;
+                }
+                
+                this.addReply(commentId, name, text);
+                
+                // 폼 초기화 및 숨기기
+                replyForm.reset();
+                replyForm.classList.remove('active');
+            });
+        });
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    saveComments() {
+        localStorage.setItem('sapporo-comments', JSON.stringify(this.comments));
+    }
+    
+    loadComments() {
+        const saved = localStorage.getItem('sapporo-comments');
+        return saved ? JSON.parse(saved) : [];
+    }
+    
+    showNotification(message) {
+        // 간단한 알림 표시
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+}
+
+// 페이지 로드 시 댓글 시스템 초기화
+document.addEventListener('DOMContentLoaded', () => {
+    new CommentSystem();
+});
+
+// 알림 애니메이션 CSS 추가
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style); 
