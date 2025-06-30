@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 스쿼트 트래커</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .webcam-section, .tracker-section {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+
+        .section-title {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+
+        .webcam-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .webcam-container canvas {
+            border: 3px solid #ddd;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+        }
+
+        .detection-info {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .detection-status {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .progress-section {
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 1.2em;
+            color: #666;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .completion-message {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            font-weight: 600;
+            display: none;
+            text-align: center;
+        }
+
+        .motivation {
+            padding: 20px;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            color: #333;
+            text-align: center;
+        }
+
+        .motivation h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .auto-mode {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 스마트 스쿼트 트래커</h1>
+    
+    <div class="main-container">
+        <div class="webcam-section">
+            <h2 class="section-title">📹 AI 스쿼트 감지</h2>
+            
+            <div class="auto-mode">
+                🎯 자동 모드: AI가 스쿼트를 자동으로 감지합니다!
+            </div>
+            
+            <div class="webcam-container" id="webcam-container">
+                <button class="btn btn-primary" onclick="init()">카메라 시작</button>
+            </div>
+            
+            <div class="detection-info">
+                <div class="detection-status" id="detectionStatus">카메라를 시작해주세요</div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="confidenceFill"></div>
+                </div>
+                <div id="confidenceText">신뢰도: 0%</div>
+            </div>
+            
+            <div id="label-container"></div>
+        </div>
+
+        <div class="tracker-section">
+            <h2 class="section-title">📊 스쿼트 트래커</h2>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <span class="stat-number" id="currentCount">0</span>
+                    <span class="stat-label">현재 횟수</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="setCount">0</span>
+                    <span class="stat-label">완료 세트</span>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">0 / 50</div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="addSet()">세트 완료</button>
+                <button class="btn btn-reset" onclick="resetAll()">초기화</button>
+            </div>
+
+            <div class="completion-message" id="completionMessage">
+                🎉 축하합니다! 50회 스쿼트를 완료했습니다!
+            </div>
+
+            <div class="motivation">
+                <h3>💪 오늘의 동기부여</h3>
+                <p id="motivationText">AI와 함께하는 스쿼트, 더욱 정확하고 재미있게!</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <script type="text/javascript">
+        // Teachable Machine 설정
+        const URL = "https://teachablemachine.withgoogle.com/models/Y7wcQ0CV_/";
+        let model, webcam, labelContainer, maxPredictions;
+        
+        // 스쿼트 트래커 변수
+        let currentCount = 0;
+        let setCount = 0;
+        const targetCount = 50;
+        // 앉기-서기 감지 상태
+        let lastPose = null; // 'sit' or 'stand'
+        let squatReady = false;
+        let lastSquatTime = 0;
+        const squatCooldown = 500; // 0.5초 쿨다운 (빠른 동작 대응)
+        
+        // 자동 감지 설정
+        let autoDetectionEnabled = false;
+        let squatSitIndex = -1; // '앉기' 클래스 인덱스
+        let squatStandIndex = -1; // '서기' 클래스 인덱스
+
+        const motivations = [
+            "AI와 함께하는 스쿼트, 더욱 정확하고 재미있게!",
+            "기술의 힘으로 완벽한 자세를 만들어보세요!",
+            "AI가 당신의 운동을 더욱 스마트하게 만듭니다!",
+            "정확한 자세로 더 효과적인 운동을!",
+            "기술과 건강의 완벽한 조화!",
+            "AI 감지로 놓치지 않는 스쿼트 카운트!",
+            "스마트한 운동으로 더 나은 결과를!",
+            "당신의 운동 파트너, AI!"
+        ];
+
+        // Teachable Machine 초기화
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+
+            try {
+                model = await tmImage.load(modelURL, metadataURL);
+                maxPredictions = model.getTotalClasses();
+                
+                // 웹캠 설정
+                const flip = true;
+                webcam = new tmImage.Webcam(400, 300, flip);
+                await webcam.setup();
+                await webcam.play();
+                window.requestAnimationFrame(loop);
+
+                // DOM 요소 추가
+                const webcamContainer = document.getElementById("webcam-container");
+                webcamContainer.innerHTML = '';
+                webcamContainer.appendChild(webcam.canvas);
+                
+                labelContainer = document.getElementById("label-container");
+                labelContainer.innerHTML = '';
+                for (let i = 0; i < maxPredictions; i++) {
+                    labelContainer.appendChild(document.createElement("div"));
+                }
+
+                // 클래스 이름 배열 얻기 (예측 한 번 실행)
+                const tempPrediction = await model.predict(webcam.canvas);
+                // '앉기'와 '서기' 인덱스 찾기
+                squatSitIndex = tempPrediction.findIndex(p => p.className.includes('앉기') || p.className.toLowerCase().includes('sit'));
+                squatStandIndex = tempPrediction.findIndex(p => p.className.includes('서기') || p.className.toLowerCase().includes('stand'));
+                
+                autoDetectionEnabled = true;
+                updateDetectionStatus("AI 감지 활성화됨 - 스쿼트를 시작하세요!");
+                
+            } catch (error) {
+                console.error("모델 로딩 실패:", error);
+                updateDetectionStatus("모델 로딩에 실패했습니다. 수동 모드를 사용하세요.");
+            }
+        }
+
+        async function loop() {
+            if (webcam) {
+                webcam.update();
+                await predict();
+                window.requestAnimationFrame(loop);
+            }
+        }
+
+        async function predict() {
+            if (!model || !webcam) return;
+            
+            const prediction = await model.predict(webcam.canvas);
+            
+            // 예측 결과 표시
+            for (let i = 0; i < maxPredictions; i++) {
+                const classPrediction = prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+                if (labelContainer.childNodes[i]) {
+                    labelContainer.childNodes[i].innerHTML = classPrediction;
+                }
+            }
+            
+            // 앉기-서기 감지 로직
+            if (autoDetectionEnabled && squatSitIndex >= 0 && squatStandIndex >= 0) {
+                const sitProb = prediction[squatSitIndex].probability;
+                const standProb = prediction[squatStandIndex].probability;
+                const currentTime = Date.now();
+                updateConfidence(Math.max(sitProb, standProb));
+
+                // 앉기 감지
+                if (sitProb > 0.7 && lastPose !== 'sit' && currentTime - lastSquatTime > squatCooldown) {
+                    lastPose = 'sit';
+                    squatReady = true; // 앉았으니 서기를 기다림
+                    lastSquatTime = currentTime;
+                }
+                // 서기 감지 (이전이 앉기였을 때만)
+                else if (standProb > 0.7 && lastPose === 'sit' && squatReady && currentTime - lastSquatTime > squatCooldown) {
+                    lastPose = 'stand';
+                    squatReady = false;
+                    lastSquatTime = currentTime;
+                    addSquat();
+                    showNotification("🏋️‍♂️ 스쿼트 1회 완료!");
+                }
+            }
+        }
+
+        function updateDetectionStatus(message) {
+            document.getElementById('detectionStatus').textContent = message;
+        }
+
+        function updateConfidence(confidence) {
+            const confidencePercent = Math.round(confidence * 100);
+            document.getElementById('confidenceFill').style.width = confidencePercent + '%';
+            document.getElementById('confidenceText').textContent = `신뢰도: ${confidencePercent}%`;
+        }
+
+        // 스쿼트 트래커 함수들
+        function updateDisplay() {
+            document.getElementById('currentCount').textContent = currentCount;
+            document.getElementById('setCount').textContent = setCount;
+            
+            const progress = (currentCount / targetCount) * 100;
+            document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
+            document.getElementById('progressText').textContent = `${currentCount} / ${targetCount}`;
+            
+            if (currentCount >= targetCount) {
+                document.getElementById('completionMessage').style.display = 'block';
+            } else {
+                document.getElementById('completionMessage').style.display = 'none';
+            }
+        }
+
+        function addSquat() {
+            currentCount++;
+            if (currentCount >= targetCount) {
+                setCount++;
+                currentCount = 0;
+                showNotification('🎉 세트 완료! 잘하셨습니다!');
+            }
+            updateDisplay();
+        }
+
+        function addSet() {
+            if (currentCount >= targetCount) {
+                setCount++;
+                currentCount = 0;
+                updateDisplay();
+                showNotification('🎉 세트 완료! 잘하셨습니다!');
+            } else {
+                showNotification('⚠️ 50회를 완료한 후 세트를 완료할 수 있습니다.');
+            }
+        }
+
+        function resetAll() {
+            if (confirm('정말로 모든 기록을 초기화하시겠습니까?')) {
+                currentCount = 0;
+                setCount = 0;
+                updateDisplay();
+                showNotification('🔄 모든 기록이 초기화되었습니다.');
+            }
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 2000);
+        }
+
+        function updateMotivation() {
+            const randomMotivation = motivations[Math.floor(Math.random() * motivations.length)];
+            document.getElementById('motivationText').textContent = randomMotivation;
+        }
+
+        // 키보드 단축키
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                addSquat();
+            } else if (event.code === 'Enter') {
+                event.preventDefault();
+                addSet();
+            }
+        });
+
+        // CSS 애니메이션 추가
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // 초기화
+        updateDisplay();
+        updateMotivation();
+    </script>
+</body>
+</html> 
